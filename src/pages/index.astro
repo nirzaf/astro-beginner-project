@@ -4,11 +4,18 @@ import Main from "../layouts/Main.astro";
 
 const profilePicture = "https://i.imgur.com/JPGFE75.jpg";
 
-const blogs = await Astro.glob<{
+let currentPage = Astro.request.query.page || 1;
+let blogsPerPage = 10;
+let blogs = await Astro.glob<{
   poster: string;
   title: string;
   subtitle: string;
 }>("../pages/blogs/*.md");
+
+let totalPages = Math.ceil(blogs.length / blogsPerPage);
+let paginatedBlogs = blogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
+
+
 ---
 
 <Main title="Frau Katarina">
@@ -62,7 +69,7 @@ const blogs = await Astro.glob<{
 
   <ol>
     {
-      blogs.map((blog) => (
+      paginatedBlogs.map((blog) => (
         <li class="blogs__list">
           <a href={blog.url} class="blog__link">
             {blog.frontmatter.title}
@@ -71,6 +78,15 @@ const blogs = await Astro.glob<{
       ))
     }
   </ol>
+
+  <nav>
+    {currentPage > 1 && (
+      <a href={`/?page=${currentPage - 1}`}>Previous</a>
+    )}
+    {currentPage < totalPages && (
+      <a href={`/?page=${currentPage + 1}`}>Next</a>
+    )}
+  </nav>
 </Main>
 
 <style>
